@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISO 4014/4017 Hex Bolt Design System</title>
+    <style>
+        /* Clean, engineering-focused CSS layout */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f5;
+            color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 750px;
+        }
+        h2 {
+            margin-top: 0;
+            border-bottom: 3px solid #2980b9;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #2980b9;
+            margin-top: 25px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            min-width: 150px;
+        }
+        .btn-primary { background-color: #2980b9; color: white; }
+        .btn-primary:hover { background-color: #1c5980; }
+        
+        .btn-macro { background-color: #8e44ad; color: white; display: none; }
+        .btn-macro:hover { background-color: #732d91; }
+
+        .btn-export { background-color: #27ae60; color: white; display: none; }
+        .btn-export:hover { background-color: #1e8449; }
+
+        .output-card, .macro-card, .manual-card {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-left: 5px solid #2980b9;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .macro-card {
+            border-left-color: #8e44ad;
+        }
+
+        .manual-card {
+            border-left-color: #e67e22;
+            display: block; /* Always show manual at bottom */
+        }
+
+        .output-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            border-bottom: 1px dashed #bdc3c7;
+            padding-bottom: 4px;
+        }
+        .output-row strong { color: #c0392b; }
+        
+        .warning {
+            color: #e67e22;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 250px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            margin-bottom: 10px;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .reference-box {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #34495e;
+            border: 1px solid #bce0fd;
+        }
+        .reference-box strong { color: #2980b9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Parametric Bolt Design & SolidWorks Automation System</h2>
+    
+    <div class="form-group">
+        <label for="diameter">Nominal Diameter (d)</label>
+        <select id="diameter">
+            <option value="4">M4</option>
+            <option value="5">M5</option>
+            <option value="6">M6</option>
+            <option value="8">M8</option>
+            <option value="10">M10</option>
+            <option value="12">M12</option>
+            <option value="14">M14</option>
+            <option value="16">M16</option>
+            <option value="20">M20</option>
+            <option value="24">M24</option>
+            <option value="30">M30</option>
+            <option value="36">M36</option>
+            <option value="42">M42</option>
+            <option value="48">M48</option>
+            <option value="56">M56</option>
+            <option value="64">M64</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="length">Target Bolt Length (L) in mm</label>
+        <input type="number" id="length" placeholder="e.g., 47" min="10" value="50">
+        <div class="warning" id="lengthWarning">Length was rounded up to the nearest ISO standard length.</div>
+    </div>
+
+    <div class="form-group">
+        <label for="threadType">Standard (Thread Type)</label>
+        <select id="threadType">
+            <option value="4014">ISO 4014 (Partial Thread)</option>
+            <option value="4017">ISO 4017 (Full Thread)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="strengthClass">Property Class</label>
+        <select id="strengthClass">
+            <option value="8.8">Grade 8.8</option>
+            <option value="10.9">Grade 10.9</option>
+            <option value="12.9">Grade 12.9</option>
+        </select>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-primary" onclick="calculateBolt()">1. Generate Spec</button>
+        <button class="btn-macro" id="macroBtn" onclick="generateSWMacro()">2. Generate SW Macro</button>
+        <button class="btn-export" id="exportBtn" onclick="exportToJSON()">Export to JSON</button>
+    </div>
+
+    <div class="output-card" id="outputCard">
+        <h3 id="outName" style="margin-top: 0; border: none;"></h3>
+        <h4>Basic Dimensions</h4>
+        <div id="basicDetails"></div>
+        <h4>Derived Engineering Values</h4>
+        <div id="engineeringDetails"></div>
+    </div>
+
+    <div class="macro-card" id="macroCard">
+        <h3 style="margin-top: 0;">SolidWorks API Macro (VBA)</h3>
+        <p style="font-size: 13px; color: #555;">Copy this code and paste it into a SolidWorks Macro module to automatically generate the 3D part.</p>
+        <textarea id="macroOutput" readonly></textarea>
+        <button class="btn-primary" onclick="copyMacro()" style="width: 100%;">Copy Code to Clipboard</button>
+    </div>
+
+    <div class="manual-card">
+        <h3 style="margin-top: 0; color: #d35400;">User Manual: How to Use in SolidWorks</h3>
+        <ol style="font-size: 14px; line-height: 1.6; padding-left: 20px;">
+            <li>Input your parameters and click <strong>"Generate Spec"</strong>, then <strong>"Generate SW Macro"</strong>.</li>
+            <li>Click <strong>"Copy Code to Clipboard"</strong>.</li>
+            <li>Open SolidWorks. Go to <strong>Tools > Macro > New</strong>.</li>
+            <li>Save the macro file (e.g., <em>AutoBolt.swp</em>).</li>
+            <li>The VBA Editor will open. <strong>Delete everything</strong> in the editor and paste the copied code.</li>
+            <li>Press <strong>F5</strong> (or click the Run icon) to execute the macro. The bolt will be generated instantly.</li>
+        </ol>
+        
+        <h4>Video Tutorial</h4>
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/lVleHnYiIYI" title="SolidWorks Macro Tutorial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <div class="reference-box">
+        <strong>Engineering Reference:</strong><br>
+        Shigley's Mechanical Engineering Design<br>
+        • Table 8-1: Diameters and Areas of Coarse-Pitch Metric Threads<br>
+        • Table A-29: Dimensions of Hexagonal Bolts
+    </div>
+</div>
+
+<script>
+    let currentBoltData = {};
+    const standardLengths = [10, 12, 16, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 180, 200, 220, 240, 260, 280, 300];
+
+    const boltDatabase = {
+        4:  { P: 0.70, s: 7,  k: 2.80 }, 
+        5:  { P: 0.80, s: 8,  k: 3.58 }, 
+        6:  { P: 1.00, s: 10, k: 4.38 }, 
+        8:  { P: 1.25, s: 13, k: 5.68 }, 
+        10: { P: 1.50, s: 16, k: 6.85 }, 
+        12: { P: 1.75, s: 18, k: 7.95 }, 
+        14: { P: 2.00, s: 21, k: 9.25 }, 
+        16: { P: 2.00, s: 24, k: 10.75 },
+        20: { P: 2.50, s: 30, k: 13.40 },
+        24: { P: 3.00, s: 36, k: 15.90 },
+        30: { P: 3.50, s: 46, k: 19.75 },
+        36: { P: 4.00, s: 55, k: 23.55 },
+        42: { P: 4.50, s: 65, k: 26.00 },
+        48: { P: 5.00, s: 75, k: 30.00 },
+        56: { P: 5.50, s: 85, k: 35.00 },
+        64: { P: 6.00, s: 95, k: 40.00 }
+    };
+
+    function calculateBolt() {
+        const d = parseInt(document.getElementById('diameter').value);
+        const inputL = parseFloat(document.getElementById('length').value);
+        const type = document.getElementById('threadType').value;
+        const strength = document.getElementById('strengthClass').value;
+
+        if (isNaN(inputL) || inputL <= 0) {
+            alert("Please enter a valid bolt length.");
+            return;
+        }
+
+        let L = standardLengths.find(val => val >= inputL) || inputL; 
+        const warningEl = document.getElementById('lengthWarning');
+        if (L !== inputL) {
+            warningEl.style.display = 'block';
+            warningEl.innerText = `Input length ${inputL}mm rounded to standard ${L}mm.`;
+        } else {
+            warningEl.style.display = 'none';
+        }
+
+        const P = boltDatabase[d].P;
+        const s = boltDatabase[d].s;
+        const k = boltDatabase[d].k;
+
+        let Lt = 0;
+        if (type === '4017') {
+            Lt = L; 
+        } else {
+            if (L <= 125) { Lt = (2 * d) + 6; } 
+            else if (L <= 200) { Lt = (2 * d) + 12; } 
+            else { Lt = (2 * d) + 25; }
+        }
+        if (Lt > L) Lt = L;
+
+        const Ls = L - Lt;
+        const d2 = d - (0.6495 * P);
+        const d3 = d - (1.226 * P);
+        const h = 0.613 * P;
+        const At = (Math.PI / 4) * Math.pow((d - 0.9382 * P), 2);
+        const revolutions = Lt / P;
+
+        const standardName = `M${d} × ${L} – ISO ${type} – ${strength}`;
+
+        currentBoltData = {
+            designation: standardName,
+            nominalDiameter_d: d,
+            pitch_P: P,
+            totalLength_L: L,
+            threadLength_Lt: Lt,
+            shankLength_Ls: Ls,
+            pitchDiameter_d2: Number(d2.toFixed(3)),
+            coreDiameter_d3: Number(d3.toFixed(3)),
+            threadDepth_h: Number(h.toFixed(3)),
+            tensileStressArea_At: Number(At.toFixed(2)),
+            acrossFlats_s: s,
+            headHeight_k: k,
+            threadRevolutions: Number(revolutions.toFixed(1))
+        };
+
+        document.getElementById('outName').innerText = standardName;
+        
+        const createRow = (label, value, unit = "") => {
+            return `<div class="output-row">
+                        <span>${label}</span>
+                        <strong>${value} ${unit}</strong>
+                    </div>`;
+        };
+
+        document.getElementById('basicDetails').innerHTML = 
+            createRow("Nominal Diameter (d)", d, "mm") +
+            createRow("Pitch (P)", P.toFixed(2), "mm") +
+            createRow("Total Length (L)", L, "mm") +
+            createRow("Thread Length (Lt)", Lt, "mm") +
+            createRow("Shank Length (Ls)", Ls, "mm") +
+            createRow("Width Across Flats (s)", s, "mm") +
+            createRow("Head Height (k)", k.toFixed(2), "mm");
+
+        document.getElementById('engineeringDetails').innerHTML = 
+            createRow("Pitch Diameter (d2)", d2.toFixed(3), "mm") +
+            createRow("Core Diameter (d3)", d3.toFixed(3), "mm") +
+            createRow("Thread Depth (h)", h.toFixed(3), "mm") +
+            createRow("Tensile Stress Area (At)", At.toFixed(2), "mm²") +
+            createRow("Thread Revolutions", revolutions.toFixed(1), "turns");
+
+        document.getElementById('outputCard').style.display = 'block';
+        document.getElementById('exportBtn').style.display = 'block';
+        document.getElementById('macroBtn').style.display = 'block';
+        document.getElementById('macroCard').style.display = 'none'; // Hide if a new calc is made
+    }
+
+    function generateSWMacro() {
+        if (!currentBoltData.nominalDiameter_d) return;
+
+        // Extract and convert parameters from the web UI
+        const d_mm = currentBoltData.nominalDiameter_d;
+        const P_mm = currentBoltData.pitch_P;
+        
+        // Convert to meters for SolidWorks API
+        const d_m = (d_mm / 1000).toFixed(5);
+        const P_m = (P_mm / 1000).toFixed(5);
+        const L_m = (currentBoltData.totalLength_L / 1000).toFixed(5);
+        const Lt_m = (currentBoltData.threadLength_Lt / 1000).toFixed(5);
+        const s_m = (currentBoltData.acrossFlats_s / 1000).toFixed(5);
+        const k_m = (currentBoltData.headHeight_k / 1000).toFixed(5);
+
+        const macroCode = `'Auto Generated Solidworks Macro
+' Part: Hex Bolt ${currentBoltData.designation}
+' Logic: Generative API Script
+        
+Option Explicit
+
+Sub main()
+
+    Dim swApp As Object
+    Dim part As Object
+    
+    Set swApp = Application.SldWorks
+    Set part = swApp.ActiveDoc
+    
+    ' Safety check: Ensure a part document is actively open in the workspace
+    If part Is Nothing Then
+        MsgBox "No active part document found!", vbCritical
+        Exit Sub
+    End If
+    
+    Dim boolstatus As Boolean
+    Dim myFeature As Object
+    Dim myNewPlane As Object
+    Dim myNewPlane2 As Object
+    
+    ' Bolt Dimension Variables
+    Dim d As Double
+    Dim p As Double
+    Dim L As Double
+    Dim Lt As Double
+    Dim s As Double
+    Dim k As Double
+    Dim rev As Double
+    Dim dmm As Double
+    Dim pmm As Double
+    
+    d = ${d_m}
+    dmm = ${d_mm}
+    pmm = ${P_mm}
+    p = ${P_m}
+    L = ${L_m}
+    Lt = ${Lt_m}
+    s = ${s_m}
+    k = ${k_m}
+    
+    rev = Lt / p
+    
+    
+    ' === 1. Base Cylinder Construction ===
+    boolstatus = SelectReferencePlane(part, "Top Plane")
+    Call CreateCircularSketch(part, d)
+    Set myFeature = ExtrudeProfile(part, L)
+    part.ClearSelection2 True
+      
+    ' === 2. Thread Generation ===
+    Call CreateThread(part, Lt, d, p, rev, "M" & dmm & "x" & pmm)
+    part.ClearSelection2 True
+    
+    ' === 3. Bolt Head (Hexagon) Construction ===
+    ' Create the offset plane at the top of the cylinder (L)
+    Set myNewPlane = CreatePlane(part, "Top Plane", L)
+    
+    ' Select the plane dynamically and open a new sketch (CRITICAL FIX)
+    part.ClearSelection2 True
+    myNewPlane.Select2 False, 0
+    part.SketchManager.InsertSketch True
+    part.ClearSelection2 True
+    
+    ' Draw and extrude the hexagon
+    Call CreateHexagon(part, s)
+    Set myFeature = ExtrudeProfile(part, k)
+    
+    ' === 9. Chamfer the Bolt Head ===
+    
+    ' Select the plane dynamically and open a new sketch (CRITICAL FIX)
+    part.ClearSelection2 True
+    myNewPlane.Select2 False, 0
+    
+    Call CreateCircularSketch(part, s) ' slect sketchManeger include this functions
+    
+    ' Now apply the draft cut: Depth = 0.0134m, Draft Angle = 45 degrees
+    Set myFeature = ExtrudeCutBoltHead(part, k, 45)
+    
+    ' Hide the reference plane to keep the workspace clean
+    myNewPlane.Select2 False, 0
+    part.BlankRefGeom
+    part.ClearSelection2 True
+    
+    ' Zoom to fit the final model
+    part.ShowNamedView2 "*Trimetric", 8
+    part.ViewZoomtofit2
+    
+    ' Create the offset plane at the top of the cylinder (L+k)
+    Set myNewPlane2 = CreatePlane(part, "Top Plane", L + k)
+    
+    ' Select the plane dynamically and open a new sketch (CRITICAL FIX)
+    part.ClearSelection2 True
+    myNewPlane2.Select2 False, 0
+    
+    Call CreateCircularSketch(part, s) ' slect sketchManeger include this functions
+    
+    ' Execute the cut: Depth = 0.0134m, Angle = 45 degrees, Flip Side = True
+    Set myFeature = CreateExtrudeCut(part, k, 45, True)
+    
+    ' Hide the reference plane to keep the workspace clean
+    myNewPlane2.Select2 False, 0
+    part.BlankRefGeom
+    part.ClearSelection2 True
+    
+    
+    
+End Sub
+
+' ==============================================================================
+' FUNCTION 1: Plane Selection
+' ==============================================================================
+Function SelectReferencePlane(part As Object, PlaneName As String) As Boolean
+    part.ClearSelection2 True
+    SelectReferencePlane = part.Extension.SelectByID2(PlaneName, "PLANE", 0, 0, 0, False, 0, Nothing, 0)
+End Function
+
+' ==============================================================================
+' FUNCTION 2: Circular Sketch
+' ==============================================================================
+Sub CreateCircularSketch(part As Object, Diameter As Double)
+    Dim Radius As Double
+    Radius = Diameter / 2
+    part.SketchManager.InsertSketch True
+    part.SketchManager.CreateCircleByRadius 0, 0, 0, Radius
+End Sub
+
+' ==============================================================================
+' FUNCTION 3: Extrude Profile
+' ==============================================================================
+Function ExtrudeProfile(part As Object, Length As Double) As Object
+    Set ExtrudeProfile = part.FeatureManager.FeatureExtrusion2( _
+        True, False, False, 0, 0, Length, 0.01, False, False, _
+        False, False, 0, 0, False, False, False, False, True, True, True, 0, 0, False)
+    part.SelectionManager.EnableContourSelection = False
+End Function
+
+' ==============================================================================
+' FUNCTION 4: Thread
+' ==============================================================================
+Function CreateThread(part As Object, depth As Double, Diameter As Double, pitch As Double, revolutions As Double, sizeName As String) As Object
+    Dim swFeatMgr As Object
+    Dim swFeatData As Object
+    Dim swFeat As Object
+    Dim boolstatus As Boolean
+    
+    Dim targetRadius As Double
+    targetRadius = Diameter / 2
+    
+    Dim rayStartPoint As Double
+    rayStartPoint = targetRadius - 0.0001
+    
+    ' Note: SelectByRay is heavily dependent on exact model coordinates.
+    boolstatus = part.Extension.SelectByRay(rayStartPoint, -2.2321222124333E-04, -2.97389205428544E-04, _
+                                            -0.904338685683526, 0.349248731077399, 0.245350495041318, _
+                                            4.43312608642011E-04, 1, True, 4194304, 0)
+    
+    Set swFeatMgr = part.FeatureManager
+    Set swFeatData = swFeatMgr.CreateDefinition(swFeatureNameID_e.swFmSweepThread)
+    swFeatData.InitializeThreadData
+    
+    swFeatData.Type = "C:\ProgramData\SolidWorks\SOLIDWORKS 2020\thread profiles\Metric Die.SLDLFP"
+    swFeatData.BlindDepth = depth
+    swFeatData.Diameter = Diameter
+    swFeatData.pitch = pitch
+    swFeatData.revolutions = revolutions
+    swFeatData.Size = sizeName
+    
+    swFeatData.Offset = True
+    swFeatData.OffsetDistance = 0.005
+    swFeatData.ReverseOffset = True
+    swFeatData.EndConditionOffsetDistance = 0.002
+    swFeatData.DiameterOverride = False
+    swFeatData.EndCondition = swThreadEndCondition_Blind
+    swFeatData.EndConditionOffset = False
+    swFeatData.EndConditionOffsetReverse = False
+    swFeatData.MaintainThreadLength = True
+    swFeatData.MirrorProfile = False
+    swFeatData.MirrorType = swThreadMirrorType_Horizontally
+    swFeatData.MultipleStart = False
+    swFeatData.NumberOfStarts = 1
+    swFeatData.PitchOverride = False
+    swFeatData.ReverseDirection = False
+    swFeatData.RightHanded = True
+    swFeatData.RotationAngle = 0
+    swFeatData.ThreadMethod = swThreadMethod_Cut
+    swFeatData.ThreadStartAngle = 0
+    swFeatData.TrimEndFace = False
+    swFeatData.TrimStartFace = True
+    
+    Set swFeat = swFeatMgr.CreateFeature(swFeatData)
+    Set CreateThread = swFeat
+End Function
+
+' ==============================================================================
+' FUNCTION 5: Create Plane (With Safety Catch)
+' ==============================================================================
+Function CreatePlane(part As Object, BasePlaneName As String, OffsetDistance As Double) As Object
+    Dim boolstatus As Boolean
+    part.ClearSelection2 True
+    
+    boolstatus = part.Extension.SelectByID2(BasePlaneName, "PLANE", 0, 0, 0, True, 0, Nothing, 0)
+    
+    If boolstatus = False Then
+        MsgBox "API Error: Could not find or select the plane named '" & BasePlaneName & "'.", vbCritical, "Selection Failed"
+        Set CreatePlane = Nothing
+        Exit Function
+    End If
+    
+    Set CreatePlane = part.FeatureManager.InsertRefPlane(8, OffsetDistance, 0, 0, 0, 0)
+End Function
+
+' ==============================================================================
+' FUNCTION 6: Create Hexagon
+' ==============================================================================
+Sub CreateHexagon(part As Object, Diameter As Double)
+    Dim vSkLines As Variant
+    Dim Radius As Double
+    Dim CornerRadius As Double
+    Radius = Diameter / 2
+    CornerRadius = Radius / Cos(30 * (3.14159265358979 / 180))
+    
+    vSkLines = part.SketchManager.CreatePolygon(0, 0, 0, CornerRadius, 0, 0, 6, True)
+End Sub
+
+' ==============================================================================
+' FUNCTION 7: Extrude Cut (Bolt Head Chamfer)
+' ==============================================================================
+Function ExtrudeCutBoltHead(part As Object, CutDepth As Double, DraftAngleDegrees As Double) As Object
+    Dim DraftAngleRadians As Double
+ 
+    DraftAngleRadians = DraftAngleDegrees * (3.14159265358979 / 180)
+    
+    Set ExtrudeCutBoltHead = part.FeatureManager.FeatureCut4( _
+        True, True, True, 1, 0, CutDepth, CutDepth, True, False, False, False, _
+        DraftAngleRadians, 0, False, False, False, False, False, True, True, True, True, False, 0, 0, False, False)
+        
+    ' Disable contour selection to clean up the workspace
+    part.SelectionManager.EnableContourSelection = False
+End Function
+
+' ==============================================================================
+' FUNCTION 8: Parametric Extrude Cut
+' ==============================================================================
+Function CreateExtrudeCut(part As Object, CutDepth As Double, DraftAngleDegrees As Double, FlipSideToCut As Boolean) As Object
+    Dim DraftAngleRadians As Double
+    
+    DraftAngleRadians = DraftAngleDegrees * (3.14159265358979 / 180)
+    
+    Set CreateExtrudeCut = part.FeatureManager.FeatureCut4( _
+        True, FlipSideToCut, False, 0, 0, CutDepth, 0.01, True, False, False, False, _
+        DraftAngleRadians, DraftAngleRadians, False, False, False, False, False, True, True, True, True, False, 0, 0, False, False)
+        
+    ' Disable contour selection to return the environment to its default state
+    part.SelectionManager.EnableContourSelection = False
+End Function`;
+
+        document.getElementById('macroOutput').value = macroCode;
+        document.getElementById('macroCard').style.display = 'block';
+        document.getElementById('macroCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyMacro() {
+        const copyText = document.getElementById("macroOutput");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+        navigator.clipboard.writeText(copyText.value);
+        
+        const btn = document.querySelector('#macroCard button');
+        const originalText = btn.innerText;
+        btn.innerText = "Copied successfully!";
+        btn.style.backgroundColor = "#27ae60";
+        
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.backgroundColor = "#2980b9";
+        }, 2000);
+    }
+
+    function exportToJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentBoltData, null, 2));
+        const downloadNode = document.createElement('a');
+        downloadNode.setAttribute("href", dataStr);
+        downloadNode.setAttribute("download", currentBoltData.designation.replace(/\s/g, '_') + ".json");
+        document.body.appendChild(downloadNode);
+        downloadNode.click();
+        downloadNode.remove();
+    }
+</script>
+
+</body>
+</html>
